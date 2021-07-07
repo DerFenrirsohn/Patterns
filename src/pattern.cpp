@@ -167,13 +167,13 @@ std::vector<std::string> PatternHolder::parse(std::string str, std::vector<std::
         }
         vec.push_back(str);
         std::vector<std::string> newdelimiter(delimiter.begin()+1,delimiter.end());
-        std::vector<std::string> toreturn;
+        std::vector<std::string> toReturn;
         for (auto it = vec.begin(); it != vec.end(); it++)
         {
             std::vector<std::string> parsedvec = parse(*it,newdelimiter);
-            toreturn.insert(toreturn.end(),parsedvec.begin(),parsedvec.end());
+            toReturn.insert(toReturn.end(),parsedvec.begin(),parsedvec.end());
         }
-        return toreturn;
+        return toReturn;
         
     }
 };
@@ -194,8 +194,8 @@ void PatternHolder::clear()
 
     }
     m=m/n;  
-    std::cout<<m<<std::endl;
-    std::cout<<batch.size()<<std::endl;  
+    std::cout<< "Moyenne use: "<<m<<std::endl;
+    std::cout<< "Taille Batch: "<<batch.size()<<std::endl;  
     std::vector<std::string> toerase;
     for (auto it = batch.begin(); it != batch.end();it++)
     {

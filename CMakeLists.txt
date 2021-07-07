@@ -13,15 +13,15 @@ set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl2)
-find_package(SDL2 REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(GLUT REQUIRED)
+#list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl2)
+#find_package(SDL2 REQUIRED)
+#find_package(OpenGL REQUIRED)
+#find_package(GLUT REQUIRED)
 # The following folder will be included
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src$
-        {OPENGL_INCLUDE_DIRS}  ${GLUT_INCLUDE_DIRS}
+        #{OPENGL_INCLUDE_DIRS}  ${GLUT_INCLUDE_DIRS}
 )
 
 file(GLOB all_SRCS
@@ -32,6 +32,6 @@ file(GLOB all_SRCS
         )
 
 add_executable(${PROJECT_NAME} ${all_SRCS})
-target_link_libraries(${PROJECT_NAME} SDL2 SDL2_image) 
-target_link_libraries(${PROJECT_NAME} SDL2 SDL2_ttf)
-target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} )
+#target_link_libraries(${PROJECT_NAME} SDL2 SDL2_image) 
+#target_link_libraries(${PROJECT_NAME} SDL2 SDL2_ttf)
+#target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} )
