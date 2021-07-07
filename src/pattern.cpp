@@ -1,6 +1,7 @@
 #include "pattern.hpp"
 unsigned int edit_distance(const std::string& s1, const std::string& s2)
 {
+    /* Fonction inutile pour l'instant pas la peine de regarder*/
 	const std::size_t len1 = s1.size(), len2 = s2.size();
 	std::vector<std::vector<unsigned int>> d(len1 + 1, std::vector<unsigned int>(len2 + 1));
 
@@ -15,6 +16,8 @@ unsigned int edit_distance(const std::string& s1, const std::string& s2)
 };
 std::string Pattern::getName(int k, bool display)
 {
+    /* Retourne le nom si c'est un pattern de base, donc en gros une lettre ou une syllabe
+    Retourne les noms des sous patterns concatenes sinon*/
     std::string str;
     if (display)
     {
@@ -38,7 +41,9 @@ std::string Pattern::getName(int k, bool display)
 };
 
 std::vector<Pattern*> PatternHolder::str2pat(std::string str)
-{
+{ 
+    /* Transforme une string en un vecteur de patterns, ajoute au batch un nouveau pattern si le caractere n'est pas reconnu
+    Sinon incrémente les pattern reconnus*/
     std::vector<Pattern*> vec;
     for (int i=0;i<str.size();i++)
     {
@@ -82,30 +87,30 @@ std::vector<Pattern*> PatternHolder::str2pat(std::string str)
 
 std::vector<Pattern*> PatternHolder::simplify(std::vector<Pattern*> vec)
 {
-
+    /* Regroupe les patterns du debut de vecteur en un seul, puis concatene à ce pattern le vecteur simplifie de la suite du vecteur initial*/
     if(vec.size()==0)
     {
         return vec;
     }
 
     int i = 1;
-    std::vector<Pattern*> tosearchvec;  
-    tosearchvec.push_back(vec[0]);
-    while (batch.find(Pattern(tosearchvec).getName())!=batch.end()&&i<vec.size())
+    std::vector<Pattern*> toSearchVec;  
+    toSearchVec.push_back(vec[0]);
+    while (batch.find(Pattern(toSearchVec).getName())!=batch.end()&&i<vec.size())
     {
-        tosearchvec.push_back(vec[i]);
+        toSearchVec.push_back(vec[i]);
         i++;
 
     }
-    if (batch.find(Pattern(tosearchvec).getName())==batch.end())
+    if (batch.find(Pattern(toSearchVec).getName())==batch.end())
     {
-        tosearchvec.pop_back();
+        toSearchVec.pop_back();
         i--;
     }
 
 
     std::vector<Pattern*> toReturnVec;
-    toReturnVec.push_back(batch.at(Pattern(tosearchvec).getName()));
+    toReturnVec.push_back(batch.at(Pattern(toSearchVec).getName()));
 
     std::vector<Pattern*> followingvec(vec.begin()+i,vec.end());
     followingvec=simplify(followingvec);
@@ -116,6 +121,7 @@ std::vector<Pattern*> PatternHolder::simplify(std::vector<Pattern*> vec)
 };;
 void PatternHolder::printMainPatterns(int i)
 {
+    /*Affiche les pattern utilises plus que le parametre*/
     std::cout << std::endl;
     for (auto it = batch.begin(); it != batch.end(); it++)
     {
@@ -135,6 +141,10 @@ void PatternHolder::printMainPatterns(int i)
 };
 void PatternHolder::input(std::string str)
 {
+    /*Transforme une string en vecteur de patterns, simplifie le vecteur au maximum
+    Ensuite, ajoute au batch des nouveaux patterns correspondant aux suites de deux patterns consecutifs
+    A voir par la suite, peut-etre ajouter toutes les possibilites de patterns consecutifs quand le clean fonctionnera
+    Incremente au passage l'usage des patterns detectes*/
     std::vector<Pattern*> vec = str2pat(str);
     std::vector<Pattern*> simplifiedVec = simplify(vec);
     while(simplifiedVec!=vec)
@@ -146,8 +156,9 @@ void PatternHolder::input(std::string str)
     for ( int i=0; i<vec.size()-1;i++)
     {
         vec[i]->used++;
-        std::vector<Pattern*> toconsidervec(vec.begin()+i,vec.begin()+i+2);
-        Pattern * p = new Pattern(toconsidervec);
+        
+        std::vector<Pattern*> toConsiderVec(vec.begin()+i,vec.begin()+i+2);
+        Pattern * p = new Pattern(toConsiderVec);
         batch.insert(std::make_pair(p->getName(),p));
     } 
     vec[vec.size()-1]->used++;
@@ -157,6 +168,8 @@ void PatternHolder::input(std::string str)
 };
 std::vector<std::string> PatternHolder::parse(std::string str, std::vector<std::string> delimiter)
 {
+    /*Decoupe une string aux endroits correspondants a differents delimiteur
+    D'abord au premier, puis reappelle la fonction sur les sous string avec le vecteur de delimiter moins celui qui a deja ete traite*/
     if(delimiter.size()==0)
     {
         std::vector<std::string> vec;
@@ -177,11 +190,11 @@ std::vector<std::string> PatternHolder::parse(std::string str, std::vector<std::
             str.erase(0, pos + delim.length());
         }
         vec.push_back(str);
-        std::vector<std::string> newdelimiter(delimiter.begin()+1,delimiter.end());
+        std::vector<std::string> newDelimiter(delimiter.begin()+1,delimiter.end());
         std::vector<std::string> toReturn;
         for (auto it = vec.begin(); it != vec.end(); it++)
         {
-            std::vector<std::string> parsedvec = parse(*it,newdelimiter);
+            std::vector<std::string> parsedvec = parse(*it,newDelimiter);
             toReturn.insert(toReturn.end(),parsedvec.begin(),parsedvec.end());
         }
         return toReturn;
@@ -190,6 +203,11 @@ std::vector<std::string> PatternHolder::parse(std::string str, std::vector<std::
 };
 void PatternHolder::clear()
 {
+    /*Fait la moyenne des usages non nuls et supprime tous les patterns qui ont un usage inferieur
+    
+    NE FONCTIONNE PAS
+    
+    segfault lors de l'appelle de la fonction getname dans checkIfComposedOf*/
     double m=0; 
     double n=0;   
     for (auto it = batch.begin(); it != batch.end(); it++)
@@ -205,10 +223,10 @@ void PatternHolder::clear()
 
     }
     m=m/n;  
-    printMainPatterns(m);
+    printMainPatterns(10*m);
     std::cout<< "Moyenne use: "<<m<<std::endl;
     std::cout<< "Taille Batch: "<<batch.size()<<std::endl;  
-    std::vector<std::string> toerase;
+    std::vector<std::string> toErase;
     for (auto it = batch.begin(); it != batch.end();it++)
     {
           if((*it).second->used<m&&!(*it).second->basis)
@@ -217,7 +235,7 @@ void PatternHolder::clear()
               
               checkIfComposedOf(it->second);
               delete(it->second);
-              toerase.push_back(it->first);
+              toErase.push_back(it->first);
           }
           else
           {
@@ -227,7 +245,7 @@ void PatternHolder::clear()
           
 
     }
-    for (auto it = toerase.begin(); it!= toerase.end(); it++)
+    for (auto it = toErase.begin(); it!= toErase.end(); it++)
     {
         batch.erase(*it);
     }
@@ -237,7 +255,11 @@ void PatternHolder::clear()
 void PatternHolder::checkIfComposedOf(Pattern * todelete)
 {
 
+    /*Check les patterns qui sont composes du pattern a detruire et leur donne un nom et les transforme en pattern de base
     
+    NE FONCTIONNE PAS
+    
+    */
     for (std::vector<Pattern * >::iterator it = todelete->abovePatterns.begin(); it != todelete->abovePatterns.end();it++)
     {
 
@@ -252,6 +274,7 @@ void PatternHolder::checkIfComposedOf(Pattern * todelete)
 };
 void PatternHolder::readText(std::string filename)
 {
+    /*Lis un text et le transforme en un vecteur de string*/
     std::string str;
     std::string text;
 	std::ifstream infile;
@@ -272,11 +295,11 @@ void PatternHolder::readText(std::string filename)
     for (int i = 0; i < sentences.size(); i++)    
     {
         input(sentences[i]);
-        if (batch.size()>5000)
+        if (batch.size()>500000)
         {
             clear();
         }
     }
-
+    clear();
 	infile.close();
 };

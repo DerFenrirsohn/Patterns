@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
 
-#include "pattern.hpp"
+#include <pattern.hpp>
 #include <unistd.h>
 
 PatternHolder * ph = new PatternHolder();
