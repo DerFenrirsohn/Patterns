@@ -30,6 +30,7 @@ std::string Pattern::getName(int k=0, bool display=false)
     {
         for (std::vector<Pattern *>::iterator it=subPatterns.begin(); it!=subPatterns.end();it++)
         {
+            //std::cout<<str<<std::endl;
             str+=(*it)->getName(k+1,display);
         }
     }
@@ -260,6 +261,7 @@ void PatternHolder::readText(std::string filename)
     for (int i = 0; i < sentences.size(); i++)    
     {
         input(sentences[i]);
+        std::cout<<"batch Size   "<< batch.size()<< std::endl;
         if (batch.size()>5000)
         {
             clear();
