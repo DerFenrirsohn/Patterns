@@ -38,7 +38,7 @@ class Pattern
 		
 		
 	};
-	std::string getName(int k,bool display);
+	std::string getName(int k=0,bool display=false);
 	bool basis=false;
 	double used=0;
 	std::string name="";
@@ -52,12 +52,12 @@ class PatternHolder
 	PatternHolder(){batch.insert(std::make_pair("",new Pattern("")));};
 	void input(std::string str);
 	void readText(std::string filename);
-	void checkifcomposedof(Pattern * todelete);
+	void checkIfComposedOf(Pattern * todelete);
 	std::vector<std::string> parse(std::string str, std::vector<std::string> delimiter);
 	std::vector<Pattern*> str2pat(std::string str);
 	std::vector<Pattern*> simplify(std::vector<Pattern*> vec);
 	void clear();
-	void printmainpatterns(int i);
+	void printMainPatterns(int i);
 	std::map<std::string,Pattern*> batch;
 };
 #endif
