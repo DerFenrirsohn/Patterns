@@ -85,6 +85,40 @@ std::vector<Pattern*> PatternHolder::str2pat(std::string str)
 };
 
 
+std::pair<int,int> PatternHolder::findKnownPattern(std::vector<Pattern*> vec)
+{
+    std::pair<int,int> foundPattern = std::make_pair(0,0);
+    
+    for (int i =0; i<vec.size();i++)
+    {
+        for(int j=2; i+j<vec.size()+1;j++)
+        {
+            std::vector<Pattern*> toSearchVec(vec.begin()+i,vec.begin()+i+j);
+            if (batch.find(Pattern(toSearchVec).getName())!=batch.end())
+            {
+                if (foundPattern.second!=0)
+                {
+                    std::vector<Pattern*> currentFoundPattern(vec.begin()+foundPattern.first,vec.begin()+foundPattern.first+foundPattern.second);
+                    if (batch.at(Pattern(currentFoundPattern).getName())->used<batch.at(Pattern(toSearchVec).getName())->used)
+                    {
+                        foundPattern=std::make_pair(i,j);
+                    }
+                }
+                
+                else
+                {
+                    foundPattern=std::make_pair(i,j);
+                }
+                
+                
+                              
+            }
+            
+        }
+    }
+    return foundPattern;
+};
+
 std::vector<Pattern*> PatternHolder::simplify(std::vector<Pattern*> vec)
 {
     /* Regroupe les patterns du debut de vecteur en un seul, puis concatene à ce pattern le vecteur simplifie de la suite du vecteur initial*/
@@ -93,32 +127,35 @@ std::vector<Pattern*> PatternHolder::simplify(std::vector<Pattern*> vec)
         return vec;
     }
 
-    int i = 1;
-    std::vector<Pattern*> toSearchVec;  
-    toSearchVec.push_back(vec[0]);
+    int i = 0;
+    std::vector<Pattern*> toSearchVec; 
     while (batch.find(Pattern(toSearchVec).getName())!=batch.end()&&i<vec.size())
     {
+        
         toSearchVec.push_back(vec[i]);
         i++;
 
     }
-    if (batch.find(Pattern(toSearchVec).getName())==batch.end())
+    
+
+    if (batch.find(Pattern(toSearchVec).getName())==batch.end()&&i>1)
     {
-        toSearchVec.pop_back();
+        
         i--;
+        toSearchVec.pop_back();
     }
+    
 
 
     std::vector<Pattern*> toReturnVec;
     toReturnVec.push_back(batch.at(Pattern(toSearchVec).getName()));
 
-    std::vector<Pattern*> followingvec(vec.begin()+i,vec.end());
-    followingvec=simplify(followingvec);
+    std::vector<Pattern*> followingvec=simplify(std::vector<Pattern*>(vec.begin()+i,vec.end()));
     toReturnVec.insert(toReturnVec.end(),followingvec.begin(),followingvec.end()); 
     return (toReturnVec);
-    
+}
 
-};;
+
 void PatternHolder::printMainPatterns(int i)
 {
     /*Affiche les pattern utilises plus que le parametre*/
@@ -128,9 +165,11 @@ void PatternHolder::printMainPatterns(int i)
         if ((*it).second->used>=i)
         {
         
-        std::cout << it->first    // string (key)
+        std::cout << it->first    
                   << ":"
-                  << it->second->used   // string's value 
+                  << it->second->used   
+                  << ":"
+                  << it->second->name   
                   
                   << std::endl;            
         }
@@ -147,11 +186,12 @@ void PatternHolder::input(std::string str)
     Incremente au passage l'usage des patterns detectes*/
     std::vector<Pattern*> vec = str2pat(str);
     std::vector<Pattern*> simplifiedVec = simplify(vec);
-    while(simplifiedVec!=vec)
+    while(simplifiedVec.size()!=vec.size())
     {
         vec=simplifiedVec;
         simplifiedVec=simplify(simplifiedVec);
-    }
+    }    
+
     
     for ( int i=0; i<vec.size()-1;i++)
     {
@@ -159,7 +199,25 @@ void PatternHolder::input(std::string str)
         
         std::vector<Pattern*> toConsiderVec(vec.begin()+i,vec.begin()+i+2);
         Pattern * p = new Pattern(toConsiderVec);
-        batch.insert(std::make_pair(p->getName(),p));
+        if (batch.find(p->getName())==batch.end())
+        {
+            batch.insert(std::make_pair(p->getName(),p));
+        }
+        else
+        {
+            std::cout<<"Fail "<< p->getName() <<std::endl;
+
+    std::cout<<findKnownPattern(p->subPatterns).first<<"-"<< findKnownPattern(p->subPatterns).second <<std::endl;
+        for (int i = findKnownPattern(p->subPatterns).first; i < findKnownPattern(p->subPatterns).first+findKnownPattern(p->subPatterns).second; i++)
+        {
+            std::cout<<p->subPatterns[i]->getName()<<std::endl;
+        }
+        
+            failureCount++;
+            delete p;
+        }
+        
+        
     } 
     vec[vec.size()-1]->used++;
 
@@ -223,7 +281,7 @@ void PatternHolder::clear()
 
     }
     m=m/n;  
-    printMainPatterns(10*m);
+    printMainPatterns(-1);
     std::cout<< "Moyenne use: "<<m<<std::endl;
     std::cout<< "Taille Batch: "<<batch.size()<<std::endl;  
     std::vector<std::string> toErase;
@@ -264,6 +322,7 @@ void PatternHolder::checkIfComposedOf(Pattern * todelete)
     {
 
         std::cout<<"used "<<(*it)->used<<std::endl;
+        std::cout<<"name "<<(*it)->name<<std::endl;
         (*it)->name=(*it)->getName(0,true);
 
         std::cout<<"ok"<<std::endl;
@@ -295,11 +354,8 @@ void PatternHolder::readText(std::string filename)
     for (int i = 0; i < sentences.size(); i++)    
     {
         input(sentences[i]);
-        if (batch.size()>500000)
-        {
-            clear();
-        }
     }
     clear();
+    std::cout<<failureCount<<std::endl;
 	infile.close();
 };

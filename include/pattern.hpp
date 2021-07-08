@@ -10,6 +10,8 @@
 #include <iostream>
 #include <unistd.h>
 #include <fstream>
+#include <iomanip>
+
 
 
 class Pattern
@@ -53,11 +55,13 @@ class PatternHolder
 	void input(std::string str);
 	void readText(std::string filename);
 	void checkIfComposedOf(Pattern * todelete);
+	std::pair<int,int> findKnownPattern(std::vector<Pattern*> vec);
 	std::vector<std::string> parse(std::string str, std::vector<std::string> delimiter);
 	std::vector<Pattern*> str2pat(std::string str);
 	std::vector<Pattern*> simplify(std::vector<Pattern*> vec);
 	void clear();
 	void printMainPatterns(int i);
 	std::map<std::string,Pattern*> batch;
+	int failureCount=0;
 };
 #endif

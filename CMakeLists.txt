@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(proj)
 # Set the output folder where your program will be created
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} -g")
+SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} -g -O0")
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}")
 add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=0)
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)

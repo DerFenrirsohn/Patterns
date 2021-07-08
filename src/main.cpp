@@ -16,9 +16,15 @@ int main(int argc, char *argv[])
     //     ph->printmainpatterns(10);
     // }
     ph->readText("../data/(1) The Hunger Games.txt");
-    // Pattern p = Pattern(ph->str2pat("Bonjour, comment allez vous ?"));
-    // Pattern p2 = Pattern(ph->simplify(ph->str2pat("Bonjour, comment allez vous ?")));
-    // std::cout<<p2.getName()<<std::endl;
+    Pattern p = Pattern(ph->str2pat("Bonjour, comment allez vous ?"));
+    Pattern p2 = Pattern(ph->simplify(ph->str2pat("Bonjour, comment allez vous ?")));
+    std::cout<<p2.getName()<<std::endl;
+    std::cout<<p2.subPatterns.size()<<std::endl;
+    for (int i = 0; i < p2.subPatterns.size(); i++)
+    {
+        std::cout<<p2.subPatterns[i]->getName()<<std::endl;
+    }
+    
 
     // ph->input("Bonjour, coumment allez vous ?");
     // ph->input("Bonjour, coumment allez vous ?");
