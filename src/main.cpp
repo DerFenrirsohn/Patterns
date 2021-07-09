@@ -8,27 +8,45 @@ int main(int argc, char *argv[])
 {
     
     PatternHolder * ph = new PatternHolder();
-    std::string str;
-    // while(true)
-    // {
-    //     std::cin>>str;
-    //     ph->input(str);
-    //     ph->printmainpatterns(10);
-    // }
-    ph->readText("../data/(1) The Hunger Games copy.txt");
-    Pattern p = Pattern(ph->str2pat("Bonjour, comment allez vous ?"));
-    Pattern p2 = Pattern(ph->simplify(ph->str2pat("Bonjour, comment allez vous ?")));
-    std::cout<<p2.getName()<<std::endl;
-    std::cout<<p2.subPatterns.size()<<std::endl;
-    for (int i = 0; i < p2.subPatterns.size(); i++)
+
+    bool printSimplification=false;
+    if (printSimplification)
     {
-        std::cout<<p2.subPatterns[i]->getName()<<std::endl;
+        std::vector<Pattern *> vec = ph->str2pat("Hello World!");
+        Pattern * p=new Pattern(ph->simplify(vec));
+        std::cout<<p->getName()<<std::endl;
     }
     
 
-    // ph->input("Bonjour, coumment allez vous ?");
-    // ph->input("Bonjour, coumment allez vous ?");
-    // ph->input("Bonjour, coumment allez vous ?");
+    bool printParse=false;
+    if (printParse)
+    {    
+        std::string str;
+        std::string text;
+	    std::ifstream infile;
+	    infile.open ("../data/(1) The Hunger Games copy.txt");
+        while(!infile.eof()) // To get you all the lines.
+        {
+        
+	        getline(infile,str); // Saves the line in STRING.
+            text+=str;
+
+        }
+        std::vector<std::string> vec{"?",".","!"};
+        std::vector<std::string> sentences = ph->parse(text,vec);
+        for (int i = 0; i<sentences.size();i++)
+        {
+            std::cout<<sentences[i]<<std::endl;
+        }
+    }
+    bool readText=true;
+    if (readText)
+    {
+        ph->readText("../data/(1) The Hunger Games.txt");
+    }
+    
+    
+    
 
     
     return 0;

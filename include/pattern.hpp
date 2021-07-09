@@ -11,34 +11,33 @@
 #include <unistd.h>
 #include <fstream>
 #include <iomanip>
+#include <algorithm>
 
 
 
 class Pattern
 {
 	public:
-	Pattern(std::string str):name(str),basis(true){};
-	Pattern(std::vector<Pattern*> subPat)
-	{
-		subPatterns=subPat;
-		if (subPat.size()==0)
-		{
-			basis=true;
-		}
-	};
+	bool basis;
+	double used;
+	std::string name;
+	std::vector<Pattern *> subPatterns;
+	std::vector<Pattern *> abovePatterns;
+
+
+	Pattern(std::string str);
+	Pattern(std::vector<Pattern*> subPat);
 	std::string getName(int k=0,bool display=false);
 	void init();
-	bool basis=false;
-	double used=0;
-	std::string name="";
-	std::vector<Pattern *> subPatterns{};
-	std::vector<Pattern *> abovePatterns{};
 };
 
 class PatternHolder
 {
 	public:
-	PatternHolder(){batch.insert(std::make_pair("",new Pattern("")));};
+	std::map<std::string,Pattern*> batch;
+	int failureCount=0;
+
+	PatternHolder();
 	void input(std::string str);
 	void readText(std::string filename);
 	void checkIfComposedOf(Pattern * todelete,double mean);
@@ -48,7 +47,5 @@ class PatternHolder
 	std::vector<Pattern*> simplify(std::vector<Pattern*> vec);
 	void clear();
 	void printMainPatterns(int i);
-	std::map<std::string,Pattern*> batch;
-	int failureCount=0;
 };
 #endif
