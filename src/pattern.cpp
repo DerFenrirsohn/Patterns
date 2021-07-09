@@ -40,6 +40,14 @@ std::string Pattern::getName(int k, bool display)
     
 };
 
+void Pattern::init()
+{
+    		for (auto it = subPatterns.begin(); it != subPatterns.end(); it++)
+			{
+				(*it)->abovePatterns.push_back(this);
+			}
+};
+
 std::vector<Pattern*> PatternHolder::str2pat(std::string str)
 { 
     /* Transforme une string en un vecteur de patterns, ajoute au batch un nouveau pattern si le caractere n'est pas reconnu
@@ -199,6 +207,7 @@ void PatternHolder::input(std::string str)
         
         std::vector<Pattern*> toConsiderVec(vec.begin()+i,vec.begin()+i+2);
         Pattern * p = new Pattern(toConsiderVec);
+        p->init();
         if (batch.find(p->getName())==batch.end())
         {
             batch.insert(std::make_pair(p->getName(),p));
@@ -281,17 +290,16 @@ void PatternHolder::clear()
 
     }
     m=m/n;  
-    printMainPatterns(-1);
     std::cout<< "Moyenne use: "<<m<<std::endl;
     std::cout<< "Taille Batch: "<<batch.size()<<std::endl;  
     std::vector<std::string> toErase;
     for (auto it = batch.begin(); it != batch.end();it++)
     {
-          if((*it).second->used<m&&!(*it).second->basis)
+          if(it->second->used<m)
           {
               
               
-              checkIfComposedOf(it->second);
+              checkIfComposedOf(it->second,m);
               delete(it->second);
               toErase.push_back(it->first);
           }
@@ -303,14 +311,16 @@ void PatternHolder::clear()
           
 
     }
+    std::cout<<"end of checking above patterns"<<std::endl;
     for (auto it = toErase.begin(); it!= toErase.end(); it++)
     {
         batch.erase(*it);
     }
+    std::cout<<"end of erasing"<<std::endl;
     
 
 }
-void PatternHolder::checkIfComposedOf(Pattern * todelete)
+void PatternHolder::checkIfComposedOf(Pattern * todelete, double mean)
 {
 
     /*Check les patterns qui sont composes du pattern a detruire et leur donne un nom et les transforme en pattern de base
@@ -320,13 +330,17 @@ void PatternHolder::checkIfComposedOf(Pattern * todelete)
     */
     for (std::vector<Pattern * >::iterator it = todelete->abovePatterns.begin(); it != todelete->abovePatterns.end();it++)
     {
-
-        std::cout<<"used "<<(*it)->used<<std::endl;
+        if ((*it)->used>=mean)
+        {
+                    std::cout<<"used "<<(*it)->used<<std::endl;
+        (*it)->name=(*it)->getName(0,false);
         std::cout<<"name "<<(*it)->name<<std::endl;
-        (*it)->name=(*it)->getName(0,true);
+        (*it)->basis=true;
 
         std::cout<<"ok"<<std::endl;
-        (*it)->basis=true;
+        }
+        
+
 
 
     }
@@ -351,11 +365,18 @@ void PatternHolder::readText(std::string filename)
     vec.push_back(".");
     std::vector<std::string> sentences=parse(text,vec);
     
-    for (int i = 0; i < sentences.size(); i++)    
+    for (int i = 0; i < 1; i++)  
+    // for (int i = 0; i < sentences.size(); i++)    
     {
         input(sentences[i]);
+        // if (batch.size()>10000)
+        // {
+        //     clear();
+        // }
+        
     }
     clear();
     std::cout<<failureCount<<std::endl;
+    std::cout<<batch.size()<<std::endl;
 	infile.close();
 };

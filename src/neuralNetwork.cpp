@@ -1,13 +1,22 @@
 #include <neuralNetwork.hpp>
 
+// double activationFunction(double input)
+// {
+//     return (1-exp(-input))/(1+exp(-input));
+// };
+
+// double activationFunctionPrime(double input)
+// {
+//     return (2*exp(input)/(1+exp(input)*(1+exp(input))));
+// };
 double activationFunction(double input)
 {
-    return (1-exp(-input))/(1+exp(-input));
+    return (log(input*input+10)*tanh(10*input));
 };
 
 double activationFunctionPrime(double input)
 {
-    return (2*exp(input)/(1+exp(input)*(1+exp(input))));
+    return (2*input*tanh(10*input)/(input*input+10)+10*log(input*input+10)/(cosh(input)*cosh(input)));
 };
 Matrix activationFunction(Matrix input)
 {

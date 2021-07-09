@@ -24,23 +24,10 @@ class Pattern
 		if (subPat.size()==0)
 		{
 			basis=true;
-			name="";
 		}
-		else
-		{
-			
-			
-			
-			for (auto it = subPatterns.begin(); it != subPatterns.end(); it++)
-			{
-				(*it)->abovePatterns.push_back(this);
-			}
-			
-		}
-		
-		
 	};
 	std::string getName(int k=0,bool display=false);
+	void init();
 	bool basis=false;
 	double used=0;
 	std::string name="";
@@ -54,7 +41,7 @@ class PatternHolder
 	PatternHolder(){batch.insert(std::make_pair("",new Pattern("")));};
 	void input(std::string str);
 	void readText(std::string filename);
-	void checkIfComposedOf(Pattern * todelete);
+	void checkIfComposedOf(Pattern * todelete,double mean);
 	std::pair<int,int> findKnownPattern(std::vector<Pattern*> vec);
 	std::vector<std::string> parse(std::string str, std::vector<std::string> delimiter);
 	std::vector<Pattern*> str2pat(std::string str);

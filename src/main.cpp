@@ -4,10 +4,10 @@
 #include <pattern.hpp>
 #include <unistd.h>
 
-PatternHolder * ph = new PatternHolder();
 int main(int argc, char *argv[])
 {
     
+    PatternHolder * ph = new PatternHolder();
     std::string str;
     // while(true)
     // {
@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     //     ph->input(str);
     //     ph->printmainpatterns(10);
     // }
-    ph->readText("../data/(1) The Hunger Games.txt");
+    ph->readText("../data/(1) The Hunger Games copy.txt");
     Pattern p = Pattern(ph->str2pat("Bonjour, comment allez vous ?"));
     Pattern p2 = Pattern(ph->simplify(ph->str2pat("Bonjour, comment allez vous ?")));
     std::cout<<p2.getName()<<std::endl;
