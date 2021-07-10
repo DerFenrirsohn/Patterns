@@ -84,7 +84,20 @@ void Pattern::init()
 		(*it)->abovePatterns.push_back(this);
 	}
 };
-
+void Pattern::increment(double x)
+{
+    used+=x;
+    if (!basis)
+    {
+        for (int i = 0; i < subPatterns.size(); i++)
+        {
+            subPatterns[i]->increment(x/std::max(subPatterns[i]->used,1.0));
+        }
+    }
+    
+    
+    
+};
 PatternHolder::PatternHolder()
 {
     batch.insert(std::make_pair("",new Pattern("")));
@@ -128,7 +141,6 @@ std::vector<Pattern*> PatternHolder::str2pat(std::string str)
         else
         {
             j--;
-            batch.at(str.substr(i,j))->used++;
             vec.push_back(batch.at(str.substr(i,j)));
         }
         i+=j;       
@@ -252,7 +264,7 @@ void PatternHolder::input(std::string str)
     //Ainsi on retourne un message lorsqu on les connait deja
     for ( int i=0; i<vec.size()-1;i++)
     {
-        vec[i]->used++;        
+        vec[i]->increment(1/std::max(vec[i]->used,1.0));        
         std::vector<Pattern*> toConsiderVec(vec.begin()+i,vec.begin()+i+2);
         if (batch.find(Pattern(toConsiderVec).getName())==batch.end())
         {
@@ -268,7 +280,7 @@ void PatternHolder::input(std::string str)
         }
         
     } 
-    vec[vec.size()-1]->used++;
+    vec[vec.size()-1]->increment(1/std::max(vec[vec.size()-1]->used,1.0));
 
 
 
@@ -336,7 +348,7 @@ void PatternHolder::clear()
     }
     double mean=sum/count; 
     
-    printMainPatterns(20*mean); 
+    printMainPatterns(mean); 
     std::cout<< "Moyenne use: "<<mean<<std::endl;
     std::cout<< "Taille Batch: "<<batch.size()<<std::endl;  
 
@@ -349,20 +361,14 @@ void PatternHolder::clear()
         std::cout<<batch.size()<<std::endl;
     for (auto it = batch.begin(); it != batch.end();it++)
     {
-        std::cout<<"point 0"<<std::endl;
           if(it->second->used<(mean/2)&&it->second->getName()!="")
           {             
-        std::cout<<"point 1"<<std::endl;
               checkIfComposedOf(it->second);
-              delete(it->second);
               toErase.push_back(it->first);
-        std::cout<<"point 2"<<std::endl;
           }
           else
           {
-        std::cout<<"point 3"<<std::endl;
-              (*it).second->used-=mean/2;
-        std::cout<<"point 4"<<std::endl;            
+              (*it).second->used-=mean/2;          
           }
           
 
@@ -371,6 +377,7 @@ void PatternHolder::clear()
     // Suppression de toutes les keys a retirer
     for (auto it = toErase.begin(); it!= toErase.end(); it++)
     {
+        delete(batch.at(*it));
         batch.erase(*it);
     }
     std::cout<<"end of erasing"<<std::endl;
@@ -437,14 +444,14 @@ void PatternHolder::readText(std::string filename)
     {
         input(sentences[i]);
         std::cout<<i<<"/"<<sentences.size()-1<<std::endl;
-        if (batch.size()>1000)
+        if (batch.size()>3000)
         {
             clear();
             j++;
             std::cout<<j<<std::endl;
         }        
     }
-    clear();
+    printMainPatterns(1);
     std::cout<<failureCount<<std::endl;
     std::cout<<batch.size()<<std::endl;
 	infile.close();

@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
         std::vector<Pattern *> vec = ph->str2pat("Hello World!");
         Pattern * p=new Pattern(ph->simplify(vec));
         std::cout<<p->getName()<<std::endl;
+        delete (p);
     }
     
 

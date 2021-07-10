@@ -28,6 +28,7 @@ class Pattern
 	Pattern(std::vector<Pattern*> subPat);
 	~Pattern(){};
 	std::string getName(int k=0,bool display=false);
+	void increment(double x);
 	void init();
 };
 
