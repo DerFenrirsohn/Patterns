@@ -35,7 +35,7 @@ class PatternHolder
 {
 	public:
 	std::map<std::string,Pattern*> batch;
-	int failureCount=0;
+	int failureCount;
 
 	PatternHolder();
 	~PatternHolder();

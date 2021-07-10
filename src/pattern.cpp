@@ -88,6 +88,7 @@ void Pattern::init()
 PatternHolder::PatternHolder()
 {
     batch.insert(std::make_pair("",new Pattern("")));
+    failureCount=0;
 }
 
 std::vector<Pattern*> PatternHolder::str2pat(std::string str)
@@ -116,6 +117,7 @@ std::vector<Pattern*> PatternHolder::str2pat(std::string str)
         //Si j vaut 1, le caractere seul n'a pas ete reconnu et on doit l'ajouter comme pattern de base au batch                
         if (j==1)
         {
+
             Pattern * p = new Pattern(str.substr(i,j));
             batch.insert(std::make_pair(str.substr(i,j),p));
             vec.push_back(p);
@@ -150,15 +152,15 @@ std::pair<int,int> PatternHolder::findKnownPattern(std::vector<Pattern*> vec)
         for(int j=2; i+j<vec.size()+1;j++)
         {
             //On extrait un sous vecteur a partir de l indice i et de longueur j
-            std::vector<Pattern*> toSearchVec(vec.begin()+i,vec.begin()+i+j);
-            if (batch.find(Pattern(toSearchVec).getName())!=batch.end())
+            std::vector<Pattern*> newFoundVec(vec.begin()+i,vec.begin()+i+j);
+            if (batch.find(Pattern(newFoundVec).getName())!=batch.end())
             {
                 // S il y a deja un pattern trouve, on compare le pattern trouve precedement et le pattern juste trouve
                 // en gardant celui dont l usage est le plus frequent 
                 if (foundPattern.second!=0)
                 {
                     std::vector<Pattern*> currentFoundPattern(vec.begin()+foundPattern.first,vec.begin()+foundPattern.first+foundPattern.second);
-                    if (batch.at(Pattern(currentFoundPattern).getName())->used<batch.at(Pattern(toSearchVec).getName())->used)
+                    if (batch.at(Pattern(currentFoundPattern).getName())->used<batch.at(Pattern(newFoundVec).getName())->used)
                     {
                         foundPattern=std::make_pair(i,j);
                     }
@@ -185,39 +187,26 @@ std::vector<Pattern*> PatternHolder::simplify(std::vector<Pattern*> vec)
     }
 
     int i = 0;
-    std::vector<Pattern*> toSearchVec; 
+    int j = 0;
 
     //Meme principe que pour str2pat, cherche un pattern en commencant au debut et en regardant avec une longueur de plus en plus grande
-    while (batch.find(Pattern(toSearchVec).getName())!=batch.end()&&i<vec.size())
-    {        
-        toSearchVec.push_back(vec[i]);
+    //conserve la longueur du plus grand pattern trouve
+    while (i<vec.size()+1)
+    {    
+        if(batch.find(Pattern(std::vector<Pattern*>(vec.begin(),vec.begin()+i)).getName())!=batch.end())
+        {
+            j=i;
+        }  
         i++;
     }
-
-    
-    //Puis decrementer l indice et pop le vecteur, parce qu il correspond au premier pattern non trouve 
-    //On le fait seulement si le pattern correspondant au vec a chercher n est pas reconnu 
-    //(s il l est c est qu on a atteint la fin du vec dans le while)
-    //Et si le vecteur a chercher a une taille d au moins 2, ainsi il ne sera pas nul apres la decrementation 
-    if (batch.find(Pattern(toSearchVec).getName())==batch.end())
-    {
-        if(i>1)
-        {
-            i--;
-            toSearchVec.pop_back();
-        }
-        if(i==1)
-        {
-            batch.insert(std::make_pair(toSearchVec[0]->getName(),toSearchVec[0]));
-        }
-    }
+    std::vector<Pattern*> maxFoundVec(vec.begin(),vec.begin()+j); 
 
     std::vector<Pattern*> toReturnVec;
     //On ajoute au vecteur a retourner le pattern correspondant au vecteur trouve
-    toReturnVec.push_back(batch.at(Pattern(toSearchVec).getName()));
+    toReturnVec.push_back(batch.at(Pattern(maxFoundVec).getName()));
 
     //On appelle la fonction a nouveau sur la suite du vecteur d origine et on insere le resultat a la fin du vecteur a retourner
-    std::vector<Pattern*> followingvec=simplify(std::vector<Pattern*>(vec.begin()+i,vec.end()));
+    std::vector<Pattern*> followingvec=simplify(std::vector<Pattern*>(vec.begin()+j,vec.end()));
     
     toReturnVec.insert(toReturnVec.end(),followingvec.begin(),followingvec.end()); 
     
@@ -260,7 +249,7 @@ void PatternHolder::input(std::string str)
     //Ensuite pour chaque element du vecteur, on ajoute au batch le pattern correspondant a ([cet element]-[son successeur])
     //Pour enregister de nouveaux patterns
     //Normalement, apres simplification, les pattern qu on tente d ajouter n existent pas
-    //Ainsi on retourne un message "Fail" lorsqu on les connait deja
+    //Ainsi on retourne un message lorsqu on les connait deja
     for ( int i=0; i<vec.size()-1;i++)
     {
         vec[i]->used++;        
@@ -271,6 +260,13 @@ void PatternHolder::input(std::string str)
             p->init();
             batch.insert(std::make_pair(p->getName(),p));
         }
+        else
+        {
+            std::cout<<"known pattern when trying to add new"<<std::endl;
+            std::cout<<findKnownPattern(toConsiderVec).first<<"-"<<findKnownPattern(toConsiderVec).second<<std::endl;
+            std::cout<<batch.at(Pattern(std::vector<Pattern*>(vec.begin()+findKnownPattern(toConsiderVec).first,vec.begin()+findKnownPattern(toConsiderVec).first+findKnownPattern(toConsiderVec).second)).getName())->getName()<<std::endl;
+        }
+        
     } 
     vec[vec.size()-1]->used++;
 
@@ -333,6 +329,8 @@ void PatternHolder::clear()
     //Moyenne de l usage de tous les patterns
     for (auto it = batch.begin(); it != batch.end(); it++)
     {
+        
+        
         sum+= ((double)((*it).second->used));
         count+=1;
     }
@@ -348,17 +346,23 @@ void PatternHolder::clear()
     // Stockage des key a retirer de la map dans un vecteur
     // Soustraire la moyenne a tous les autres patterns
     std::vector<std::string> toErase;
+        std::cout<<batch.size()<<std::endl;
     for (auto it = batch.begin(); it != batch.end();it++)
     {
+        std::cout<<"point 0"<<std::endl;
           if(it->second->used<(mean/2)&&it->second->getName()!="")
           {             
+        std::cout<<"point 1"<<std::endl;
               checkIfComposedOf(it->second);
               delete(it->second);
               toErase.push_back(it->first);
+        std::cout<<"point 2"<<std::endl;
           }
           else
           {
-              (*it).second->used-=mean/2;              
+        std::cout<<"point 3"<<std::endl;
+              (*it).second->used-=mean/2;
+        std::cout<<"point 4"<<std::endl;            
           }
           
 

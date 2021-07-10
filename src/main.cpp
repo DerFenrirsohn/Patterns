@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
         {
             std::cout<<vec[i]->getName()<<std::endl;
         }
+        std::cout<<ph->batch.size()<<std::endl;
     }
 
     bool printSimplification=false;
