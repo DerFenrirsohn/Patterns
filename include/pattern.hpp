@@ -8,7 +8,6 @@
 #include <time.h> 
 #include <random>
 #include <iostream>
-#include <unistd.h>
 #include <fstream>
 #include <iomanip>
 #include <algorithm>
@@ -27,6 +26,7 @@ class Pattern
 
 	Pattern(std::string str);
 	Pattern(std::vector<Pattern*> subPat);
+	~Pattern(){};
 	std::string getName(int k=0,bool display=false);
 	void init();
 };
@@ -38,9 +38,10 @@ class PatternHolder
 	int failureCount=0;
 
 	PatternHolder();
+	~PatternHolder();
 	void input(std::string str);
 	void readText(std::string filename);
-	void checkIfComposedOf(Pattern * todelete,double mean);
+	void checkIfComposedOf(Pattern * todelete);
 	std::pair<int,int> findKnownPattern(std::vector<Pattern*> vec);
 	std::vector<std::string> parse(std::string str, std::vector<std::string> delimiter);
 	std::vector<Pattern*> str2pat(std::string str);

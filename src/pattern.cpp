@@ -55,6 +55,7 @@ std::string Pattern::getName(int k, bool display)
     }
  
     // si le pattern est un pattern de base (une lettre par exemple), afficher simplement le nom
+
     if (basis)
     {
         str+=name;
@@ -64,9 +65,13 @@ std::string Pattern::getName(int k, bool display)
     {
         for (std::vector<Pattern *>::iterator it=subPatterns.begin(); it!=subPatterns.end();it++)
         {
+            
             str+=(*it)->getName(k+1,display);
         }
+            
     }
+    
+
     return (str);
     
 };
@@ -96,7 +101,7 @@ std::vector<Pattern*> PatternHolder::str2pat(std::string str)
         bool found=true;
         //Tant qu'on reconnait la sous string de i a i+j comme un pattern connu dans le batch,
         //on incrémente j jusqu'a ce qu'on ne reconnaisse plus le pattern
-        while (found&&((i+j)<str.size()+1))
+        while (found&&((i+j)<str.size()))
         {
             auto it = batch.find(str.substr(i,j));
             if (it!=batch.end())
@@ -142,7 +147,7 @@ std::pair<int,int> PatternHolder::findKnownPattern(std::vector<Pattern*> vec)
 
     for (int i =0; i<vec.size();i++)
     {
-        for(int j=2; i+j<vec.size();j++)
+        for(int j=2; i+j<vec.size()+1;j++)
         {
             //On extrait un sous vecteur a partir de l indice i et de longueur j
             std::vector<Pattern*> toSearchVec(vec.begin()+i,vec.begin()+i+j);
@@ -188,14 +193,23 @@ std::vector<Pattern*> PatternHolder::simplify(std::vector<Pattern*> vec)
         toSearchVec.push_back(vec[i]);
         i++;
     }
+
+    
     //Puis decrementer l indice et pop le vecteur, parce qu il correspond au premier pattern non trouve 
     //On le fait seulement si le pattern correspondant au vec a chercher n est pas reconnu 
     //(s il l est c est qu on a atteint la fin du vec dans le while)
     //Et si le vecteur a chercher a une taille d au moins 2, ainsi il ne sera pas nul apres la decrementation 
-    if (batch.find(Pattern(toSearchVec).getName())==batch.end()&&i>1)
+    if (batch.find(Pattern(toSearchVec).getName())==batch.end())
     {
-        i--;
-        toSearchVec.pop_back();
+        if(i>1)
+        {
+            i--;
+            toSearchVec.pop_back();
+        }
+        if(i==1)
+        {
+            batch.insert(std::make_pair(toSearchVec[0]->getName(),toSearchVec[0]));
+        }
     }
 
     std::vector<Pattern*> toReturnVec;
@@ -214,7 +228,6 @@ std::vector<Pattern*> PatternHolder::simplify(std::vector<Pattern*> vec)
 void PatternHolder::printMainPatterns(int i)
 {
     /*Affiche les pattern utilises plus que le parametre*/
-    std::cout << std::endl;
     for (auto it = batch.begin(); it != batch.end(); it++)
     {
         if ((*it).second->used>=i)
@@ -236,6 +249,7 @@ void PatternHolder::input(std::string str)
     std::vector<Pattern*> vec = str2pat(str);
     // Simplifie le pattern tant que c est possible, arret des que le vecteur et sa simplification sont identiques
     std::vector<Pattern*> simplifiedVec = simplify(vec);
+    
     while(simplifiedVec.size()!=vec.size())
     {
         vec=simplifiedVec;
@@ -251,23 +265,12 @@ void PatternHolder::input(std::string str)
     {
         vec[i]->used++;        
         std::vector<Pattern*> toConsiderVec(vec.begin()+i,vec.begin()+i+2);
-        Pattern * p = new Pattern(toConsiderVec);
-        p->init();
-        if (batch.find(p->getName())==batch.end())
+        if (batch.find(Pattern(toConsiderVec).getName())==batch.end())
         {
+            Pattern * p = new Pattern(toConsiderVec);
+            p->init();
             batch.insert(std::make_pair(p->getName(),p));
         }
-        else
-        {
-            std::cout<<"Fail "<< p->getName() <<std::endl;
-            std::cout<<findKnownPattern(p->subPatterns).first<<"-"<< findKnownPattern(p->subPatterns).second <<std::endl;
-            for (int i = findKnownPattern(p->subPatterns).first; i < findKnownPattern(p->subPatterns).first+findKnownPattern(p->subPatterns).second; i++)
-            {
-                std::cout<<p->subPatterns[i]->getName()<<std::endl;
-            }
-            failureCount++;
-            delete p;
-        }      
     } 
     vec[vec.size()-1]->used++;
 
@@ -320,45 +323,42 @@ std::vector<std::string> PatternHolder::parse(std::string str, std::vector<std::
 };
 void PatternHolder::clear()
 {
-    /*Fait la moyenne des usages non nuls et supprime tous les patterns qui ont un usage inferieur
+    /*Fait la moyenne des usages et supprime tous les patterns qui ont un usage inferieur
     
-    NE FONCTIONNE PAS
-    
-    segfault lors de l'appelle de la fonction getname dans checkIfComposedOf*/
+    */
 
     double sum=0; 
     double count=0;
 
-    //Moyenne de l usage de tous les patterns dont l usage est superieur a zero
+    //Moyenne de l usage de tous les patterns
     for (auto it = batch.begin(); it != batch.end(); it++)
     {
-        if (it->second->used>0)
-        {
-            sum+= ((double)((*it).second->used));
-            count+=1;
-        }
+        sum+= ((double)((*it).second->used));
+        count+=1;
     }
-    double mean=sum/count;  
+    double mean=sum/count; 
+    
+    printMainPatterns(20*mean); 
     std::cout<< "Moyenne use: "<<mean<<std::endl;
     std::cout<< "Taille Batch: "<<batch.size()<<std::endl;  
 
     // Parcours du batch pour supprimer tous les patterns dont l usage est inferieur a la moyenne
-    // Appelle de la fonction checkIfComposedOf pour enlever les apparition du pointeur dans d autres patterns
+    // Appelle de la fonction checkIfComposedOf pour enlever les apparitions du pointeur dans d autres patterns
     // Pour pouvoir delete le pointeur sans probleme par la suite
     // Stockage des key a retirer de la map dans un vecteur
     // Soustraire la moyenne a tous les autres patterns
     std::vector<std::string> toErase;
     for (auto it = batch.begin(); it != batch.end();it++)
     {
-          if(it->second->used<mean&&!it->second->basis)
+          if(it->second->used<(mean/2)&&it->second->getName()!="")
           {             
-              checkIfComposedOf(it->second,mean);
+              checkIfComposedOf(it->second);
               delete(it->second);
               toErase.push_back(it->first);
           }
           else
           {
-              (*it).second->used-=mean;              
+              (*it).second->used-=mean/2;              
           }
           
 
@@ -373,24 +373,24 @@ void PatternHolder::clear()
     
 
 }
-void PatternHolder::checkIfComposedOf(Pattern * todelete, double mean)
+void PatternHolder::checkIfComposedOf(Pattern * todelete)
 {
 
     /*Check les patterns qui sont composes du pattern a detruire et leur donne un nom et les transforme en pattern de base
-    
-    NE FONCTIONNE PAS
     
     */
 
    //Parcourt tous les patterns de abovePattern, donc tous ceux qui sont composes du pattern a detruire
    //Si leur usage est superieur a la moyenne, on les transforme en pattern de base, ses subpattern devenant inutiles 
+
+              
+              
     for (std::vector<Pattern * >::iterator it = todelete->abovePatterns.begin(); it != todelete->abovePatterns.end();it++)
     {
-        if ((*it)->used>=mean)
-        {
+
             (*it)->name=(*it)->getName(0,false);
             (*it)->basis=true;
-        }
+        
     }  
     //Parcourt les subpatterns, et supprime le vecteur a delete de leurs abovepatterns (normalement il y est, mais il y a des erreurs sans la condition)
     for (std::vector<Pattern * >::iterator it = todelete->subPatterns.begin(); it != todelete->subPatterns.end();it++)
@@ -402,6 +402,14 @@ void PatternHolder::checkIfComposedOf(Pattern * todelete, double mean)
         }            
     }
 };
+PatternHolder::~PatternHolder()
+{
+    for(auto it=batch.begin();it!=batch.end();it++)
+    {
+        delete it->second;
+    }
+};
+
 void PatternHolder::readText(std::string filename)
 {
     //Lis un fichier et stock tout le texte dans une string
@@ -420,13 +428,16 @@ void PatternHolder::readText(std::string filename)
     std::vector<std::string> sentences=parse(text,vec);
     
     //Input les phrases une par une, et clear le batch lorsque sa taille dépasse une valeur donnée
+    int j=0;
     for (int i = 0; i < sentences.size(); i++)    
     {
         input(sentences[i]);
-    //printMainPatterns(-1);
-        if (batch.size()>10000)
+        std::cout<<i<<"/"<<sentences.size()-1<<std::endl;
+        if (batch.size()>1000)
         {
             clear();
+            j++;
+            std::cout<<j<<std::endl;
         }        
     }
     clear();

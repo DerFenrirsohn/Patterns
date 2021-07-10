@@ -2,12 +2,20 @@
 #include <stdlib.h>
 
 #include <pattern.hpp>
-#include <unistd.h>
-
 int main(int argc, char *argv[])
 {
     
     PatternHolder * ph = new PatternHolder();
+
+    bool printStr2pat=false;
+    if (printStr2pat)
+    {
+        std::vector<Pattern *> vec = ph->str2pat("Hello World!");
+        for (int i=0;i<vec.size();i++)
+        {
+            std::cout<<vec[i]->getName()<<std::endl;
+        }
+    }
 
     bool printSimplification=false;
     if (printSimplification)
@@ -43,6 +51,7 @@ int main(int argc, char *argv[])
     if (readText)
     {
         ph->readText("../data/(1) The Hunger Games.txt");
+        delete(ph);
     }
     
     
