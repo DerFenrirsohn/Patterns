@@ -164,3 +164,52 @@ Vec::Vec(std::vector<double> v):Matrix(std::make_pair(v.size(),1),0,true)
         components_[i][0]=v[i];
     }
 };
+
+
+std::vector<Matrix> split(Matrix data)
+{
+    int sizeOfOutputVec=data.dimensions_.first/data.spaceDimension;
+    std::vector<Matrix> output;
+    for (int i = 0; i < sizeOfOutputVec; i++)
+    {
+        std::vector<double> vec;
+        for (int j = 0; j < data.spaceDimension; j++)
+        {
+            vec.push_back(data.components_[j][0]);
+        }
+        
+        Vec v=Vec(vec);
+        output.push_back(v);
+    }
+    return output;
+    
+};
+Matrix concatenate(std::vector<Matrix> data)
+{
+    std::vector<double> vecOfComponentsToOutput;
+    for (int i = 0; i < data.size(); i++)
+    {
+        for (int j = 0; j < data[0].spaceDimension; j++)
+        {
+            vecOfComponentsToOutput.push_back(data[i].components_[j][0]);
+        }
+        
+    }
+    return Vec(vecOfComponentsToOutput);
+};
+
+double weightOfDimension(double x, int i)
+{
+    return 1.0;
+}
+
+double distance(Matrix m1, Matrix m2)
+{
+    double sum=0;
+    for (int i = 0; i < m1.spaceDimension; i++)
+    {
+        sum+=weightOfDimension(pow(m1.components_[i][0]-m2.components_[i][0],2),i);
+    }
+    return sqrt(sum);
+    
+};
